@@ -1,6 +1,7 @@
 package config
 
 import (
+	"backend/internal/models"
 	"log"
 	"os"
 
@@ -18,4 +19,17 @@ func ConnectDB() {
 		log.Fatal("Failed to connect to database: ", err)
 	}
 	log.Println("database connected successfull")
+	err = DB.AutoMigrate(
+		&models.User{},
+		&models.Agent{},
+		&models.Transaction{},
+		&models.Commission{},
+		&models.Kyc{},
+		&models.Receipt{},
+	)
+	if err != nil {
+		log.Fatal("Failed to migrate database:", err)
+	}
+
+	log.Println("Database migrated successfully")
 }

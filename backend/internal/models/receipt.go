@@ -6,7 +6,7 @@ import (
 	"gorm.io/gorm"
 )
 
-type Recepit struct {
+type Receipt struct {
 	gorm.Model
 	TransactionID uint        `gorm:"not null"`
 	Transaction   Transaction `gorm:"foreignKey:TransactionID"`
