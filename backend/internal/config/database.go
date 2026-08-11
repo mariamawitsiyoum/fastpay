@@ -4,6 +4,8 @@ import (
 	"log"
 	"os"
 
+	"backend/internal/models"
+
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
@@ -18,4 +20,19 @@ func ConnectDB() {
 		log.Fatal("Failed to connect to database: ", err)
 	}
 	log.Println("database connected successfull")
+
+	// AutoMigrate creates/updates tables in the database to match
+	// these Go structs. Run this every time a model changes shape.
+	err = DB.AutoMigrate(
+		&models.User{},
+		&models.Agent{},
+		&models.Kyc{},
+		&models.Transaction{},
+		&models.Recepit{},
+		&models.Commission{},
+	)
+	if err != nil {
+		log.Fatal("Failed to run migrations: ", err)
+	}
+	log.Println("database migrated successfully")
 }
