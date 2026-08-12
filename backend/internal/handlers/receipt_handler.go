@@ -51,8 +51,25 @@ func GenerateReceipt(c *gin.Context) {
 		return
 	}
 
+	// TEMPORARY: using a hardcoded test email until real customer
+	// email lookup exists (depends on auth/user signup being finished).
+	testEmail := "merrymary121212@gmail.com"
+	if err := services.SendReceiptEmail(testEmail, txn.Reference, pdfPath); err != nil {
+		// We don't fail the whole request if email fails - the receipt
+		// itself was already generated and saved successfully. We just
+		// let the response note that emailing didn't work.
+		c.JSON(http.StatusCreated, gin.H{
+			"message":     "receipt generated, but email failed to send",
+			"receipt_id":  receipt.ID,
+			"pdf_url":     receipt.PDFUrl,
+			"qr_url":      receipt.QRCodeUrl,
+			"email_error": err.Error(),
+		})
+		return
+	}
+
 	c.JSON(http.StatusCreated, gin.H{
-		"message":    "receipt generated",
+		"message":    "receipt generated and emailed",
 		"receipt_id": receipt.ID,
 		"pdf_url":    receipt.PDFUrl,
 		"qr_url":     receipt.QRCodeUrl,
