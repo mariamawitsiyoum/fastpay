@@ -10,9 +10,10 @@ import (
 )
 
 type RegisterInput struct {
-	Name     string `json:"name" binding:"required"`
-	Email    string `json:"email" binding:"required,email"`
-	Password string `json:"password" binding:"required,min=6"`
+	Name        string `json:"name" binding:"required"`
+	Email       string `json:"email" binding:"required,email"`
+	Password    string `json:"password" binding:"required,min=6"`
+	PhoneNumber string `json:"phone_number" binding:"required"`
 }
 
 func Register(c *gin.Context) {
@@ -32,6 +33,7 @@ func Register(c *gin.Context) {
 		Name:         input.Name,
 		Email:        input.Email,
 		PasswordHash: hashedPassword,
+		PhoneNumber:  input.PhoneNumber,
 	}
 
 	if err := config.DB.Create(&user).Error; err != nil {
