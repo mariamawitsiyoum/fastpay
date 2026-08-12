@@ -13,4 +13,9 @@ func RegisterRoutes(router *gin.Engine) {
 		kyc.GET("/pending", handlers.GetPendingKYC)
 		kyc.PATCH("/:id/review", handlers.ReviewKYC)
 	}
+
+	receipts := router.Group("/receipts")
+	{
+		receipts.POST("/:reference/generate", handlers.GenerateReceipt)
+	}
 }
