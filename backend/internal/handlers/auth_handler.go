@@ -85,3 +85,14 @@ func Login(c *gin.Context) {
 		"token":     token,
 	})
 }
+
+func Profile(c *gin.Context) {
+	userID, _ := c.Get("user_id")
+	role, _ := c.Get("user_role")
+
+	c.JSON(http.StatusOK, gin.H{
+		"message":   "you are authenticated",
+		"user_id":   userID,
+		"user_role": role,
+	})
+}
