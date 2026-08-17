@@ -11,5 +11,7 @@ func SetupRoutes(router *gin.Engine) {
 	router.POST("/register", handlers.Register)
 	router.POST("/login", handlers.Login)
 	router.GET("/profile", middleware.AuthMiddleware(), handlers.Profile)
+	router.POST("/agents", middleware.AuthMiddleware(), handlers.RegisterAgent)
+	router.PATCH("/admin/agents/:id/status", middleware.AuthMiddleware(), middleware.RequireRole("admin"), handlers.UpdateAgentStatus)
 
 }
