@@ -3,6 +3,7 @@ import { MapContainer, TileLayer, Marker, Popup, CircleMarker, useMap } from 're
 import { getNearbyAgents } from '../api/agents'
 import { calculateDistanceKm } from '../utils/distance'
 import '../utils/leafletIconFix'
+import Skeleton from '../components/Skeleton'
 
 function RecenterMap({ position }) {
   const map = useMap()
@@ -55,9 +56,25 @@ function AgentLocator() {
     )
   }
 
-  if (loading) {
-    return <p className="text-slate-500">Loading nearby agents...</p>
-  }
+//   if (loading) {
+//     return <p className="text-slate-500">Loading nearby agents...</p>
+//   }
+        if (loading) {
+        return (
+            <div>
+            <div className="flex items-center justify-between mb-4">
+                <Skeleton className="h-8 w-40" />
+                <Skeleton className="h-9 w-32" />
+            </div>
+            <Skeleton className="h-[400px] w-full mb-4" />
+            <div className="flex flex-col gap-3">
+                <Skeleton className="h-20 w-full" />
+                <Skeleton className="h-20 w-full" />
+                <Skeleton className="h-20 w-full" />
+            </div>
+            </div>
+        )
+        }
 
   const userPosition = userLocation
     ? [userLocation.latitude, userLocation.longitude]

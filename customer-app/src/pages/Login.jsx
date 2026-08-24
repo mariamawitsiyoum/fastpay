@@ -1,8 +1,170 @@
+// import { useState } from 'react'
+// import { useNavigate } from 'react-router-dom'
+// import { login } from '../api/auth'
+// import { useAuth } from '../context/AuthContext'
+// import { Link } from 'react-router-dom'
+
+// function Login() {
+//   const navigate = useNavigate()
+//   const { loginUser } = useAuth()
+
+//   const [email, setEmail] = useState('')
+//   const [password, setPassword] = useState('')
+//   const [errors, setErrors] = useState({})
+//   const [loading, setLoading] = useState(false)
+//   const [serverError, setServerError] = useState('')
+
+//   function validate() {
+//     const newErrors = {}
+
+//     if (!password.trim()) {
+//       newErrors.password = 'Password is required'
+//     }
+
+//     if (!email.trim()) {
+//       newErrors.email = 'Email is required'
+//     } else if (!email.includes('@')) {
+//       newErrors.email = 'Enter a valid email'
+//     }
+
+//     return newErrors
+//   }
+
+//   async function handleSubmit(e) {
+//     e.preventDefault()
+
+//     const validationErrors = validate()
+
+//     if (Object.keys(validationErrors).length > 0) {
+//       setErrors(validationErrors)
+//       return
+//     }
+
+//     setErrors({})
+//     setServerError('')
+//     setLoading(true)
+
+//     try {
+//       const user = await login({ email, password })
+
+//       console.log('Login successful:', user)
+
+//       loginUser(user)
+//       navigate('/home')
+//     } catch (err) {
+//       setServerError(err.message)
+//     } finally {
+//       setLoading(false)
+//     }
+//   }
+
+//   return (
+//     <div className="min-h-screen bg-slate-50 flex items-center justify-center px-4">
+//       <div className="w-full max-w-sm bg-white shadow-sm rounded-xl p-6">
+
+//         <h1 className="text-2xl font-bold text-slate-800 mb-1">
+//           Welcome to FastPay!
+//         </h1>
+
+//         <p className="text-slate-500 text-sm mb-4">
+//           Log in to start sending and receiving with FastPay
+//         </p>
+
+//         {serverError && (
+//           <p className="text-red-600 text-sm mb-3">
+//             {serverError}
+//           </p>
+//         )}
+
+//         <form onSubmit={handleSubmit} className="flex flex-col gap-3">
+
+//           {/* Email */}
+//           <div>
+//             <label className="text-slate-500 text-sm">
+//               Email <span className="text-red-500">*</span>
+//             </label>
+
+//             <input
+//               type="email"
+//               placeholder="Email"
+//               value={email}
+//               onChange={(e) => setEmail(e.target.value)}
+//               className="border border-slate-300 rounded px-3 py-2 w-full text-slate-700 focus:outline-none focus:ring-2 focus:ring-sky-500"
+//             />
+
+//             {errors.email && (
+//               <p className="text-red-600 text-sm mt-1">
+//                 {errors.email}
+//               </p>
+//             )}
+//           </div>
+
+//           {/* Password */}
+//           <div>
+//             <label className="text-slate-500 text-sm">
+//               Password <span className="text-red-500">*</span>
+//             </label>
+
+//             <input
+//               type="password"
+//               placeholder="Password"
+//               value={password}
+//               onChange={(e) => setPassword(e.target.value)}
+//               className="border border-slate-300 rounded px-3 py-2 w-full text-slate-700 focus:outline-none focus:ring-2 focus:ring-sky-500"
+//             />
+
+//             {errors.password && (
+//               <p className="text-red-600 text-sm mt-1">
+//                 {errors.password}
+//               </p>
+//             )}
+//           </div>
+
+//           {/* Login button */}
+//           <button
+//             type="submit"
+//             disabled={loading}
+//             className="bg-sky-500 hover:bg-sky-600 text-white rounded px-3 py-2 mt-2 font-medium disabled:opacity-50"
+//           >
+//             {loading ? 'Logging in...' : 'Login'}
+//           </button>
+
+//         </form>
+
+//         <p className="text-slate-500 text-sm mt-4 text-center">
+//           Don't have an account?{' '}
+//           <Link
+//             to="/signup"
+//             className="text-sky-600 hover:text-sky-500 font-medium"
+//           >
+//             Sign up
+//           </Link>
+//         </p>
+
+//       </div>
+//     </div>
+//   )
+// }
+
+// export default Login
+
+
+
+
+
+
+
+
+
+
+
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, Link } from 'react-router-dom'
 import { login } from '../api/auth'
 import { useAuth } from '../context/AuthContext'
-import { Link } from 'react-router-dom'
+import AuthLayout from '../components/AuthLayout'
+import FormInput from '../components/FormInput'
+import PrimaryButton from '../components/PrimaryButton'
 
 function Login() {
   const navigate = useNavigate()
@@ -16,17 +178,12 @@ function Login() {
 
   function validate() {
     const newErrors = {}
-
-    if (!password.trim()) {
-      newErrors.password = 'Password is required'
-    }
-
+    if (!password.trim()) newErrors.password = 'Password is required'
     if (!email.trim()) {
       newErrors.email = 'Email is required'
     } else if (!email.includes('@')) {
       newErrors.email = 'Enter a valid email'
     }
-
     return newErrors
   }
 
@@ -34,7 +191,6 @@ function Login() {
     e.preventDefault()
 
     const validationErrors = validate()
-
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors)
       return
@@ -45,104 +201,60 @@ function Login() {
     setLoading(true)
 
     try {
-      const user = await login({ email, password })
-
-      console.log('Login successful:', user)
-
-      loginUser(user)
+      const data = await login({ email, password })
+      loginUser(data)
       navigate('/home')
     } catch (err) {
-      setServerError(err.message)
+      const message = err.response?.data?.error || err.message || 'Something went wrong. Please try again.'
+      setServerError(message)
     } finally {
       setLoading(false)
     }
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 flex items-center justify-center px-4">
-      <div className="w-full max-w-sm bg-white shadow-sm rounded-xl p-6">
+    <AuthLayout title="Welcome back">
+      {serverError && (
+        <p className="text-red-600 text-sm mb-3">{serverError}</p>
+      )}
 
-        <h1 className="text-2xl font-bold text-slate-800 mb-1">
-          Welcome to FastPay!
-        </h1>
-
-        <p className="text-slate-500 text-sm mb-4">
-          Log in to start sending and receiving with FastPay
-        </p>
-
-        {serverError && (
-          <p className="text-red-600 text-sm mb-3">
-            {serverError}
-          </p>
+      <form onSubmit={handleSubmit}>
+        <FormInput
+          label="Email"
+          required
+          type="email"
+          placeholder="Email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+        />
+        {errors.email && (
+          <p className="text-red-600 text-sm -mt-3 mb-4">{errors.email}</p>
         )}
 
-        <form onSubmit={handleSubmit} className="flex flex-col gap-3">
+        <FormInput
+          label="Password"
+          required
+          type="password"
+          placeholder="Password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+        />
+        {errors.password && (
+          <p className="text-red-600 text-sm -mt-3 mb-4">{errors.password}</p>
+        )}
 
-          {/* Email */}
-          <div>
-            <label className="text-slate-500 text-sm">
-              Email <span className="text-red-500">*</span>
-            </label>
+        <PrimaryButton type="submit" disabled={loading}>
+          {loading ? 'Logging in...' : 'Login'}
+        </PrimaryButton>
+      </form>
 
-            <input
-              type="email"
-              placeholder="Email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="border border-slate-300 rounded px-3 py-2 w-full text-slate-700 focus:outline-none focus:ring-2 focus:ring-sky-500"
-            />
-
-            {errors.email && (
-              <p className="text-red-600 text-sm mt-1">
-                {errors.email}
-              </p>
-            )}
-          </div>
-
-          {/* Password */}
-          <div>
-            <label className="text-slate-500 text-sm">
-              Password <span className="text-red-500">*</span>
-            </label>
-
-            <input
-              type="password"
-              placeholder="Password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="border border-slate-300 rounded px-3 py-2 w-full text-slate-700 focus:outline-none focus:ring-2 focus:ring-sky-500"
-            />
-
-            {errors.password && (
-              <p className="text-red-600 text-sm mt-1">
-                {errors.password}
-              </p>
-            )}
-          </div>
-
-          {/* Login button */}
-          <button
-            type="submit"
-            disabled={loading}
-            className="bg-sky-500 hover:bg-sky-600 text-white rounded px-3 py-2 mt-2 font-medium disabled:opacity-50"
-          >
-            {loading ? 'Logging in...' : 'Login'}
-          </button>
-
-        </form>
-
-        <p className="text-slate-500 text-sm mt-4 text-center">
-          Don't have an account?{' '}
-          <Link
-            to="/signup"
-            className="text-sky-600 hover:text-sky-500 font-medium"
-          >
-            Sign up
-          </Link>
-        </p>
-
-      </div>
-    </div>
+      <p className="text-slate-500 text-sm mt-4 text-center">
+        Don't have an account?{' '}
+        <Link to="/signup" className="text-sky-600 hover:text-sky-500 font-medium">
+          Sign up
+        </Link>
+      </p>
+    </AuthLayout>
   )
 }
 

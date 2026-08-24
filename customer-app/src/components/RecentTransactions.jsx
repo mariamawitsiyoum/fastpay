@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { getTransactionHistory } from '../api/transactions'
 import { formatDate } from '../utils/formatDate'
+import Skeleton from './Skeleton'
 
 const typeLabels = {
   cash_in: 'Cash In',
@@ -40,7 +41,14 @@ function RecentTransactions() {
         </button>
       </div>
 
-      {loading && <p className="text-slate-500 text-sm">Loading...</p>}
+      {/* {loading && <p className="text-slate-500 text-sm">Loading...</p>} */}
+      {loading && (
+            <div className="flex flex-col gap-2">
+                <Skeleton className="h-12 w-full" />
+                <Skeleton className="h-12 w-full" />
+                <Skeleton className="h-12 w-full" />
+            </div>
+            )}
 
       {!loading && transactions.length === 0 && (
         <p className="text-slate-500 text-sm">No transactions yet.</p>

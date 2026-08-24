@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { getExchangeRates } from '../api/exchangeRate'
+import Skeleton from './Skeleton'
 
 const currencyOptions = ['USD', 'EUR', 'GBP', 'CAD', 'AUD']
 
@@ -52,7 +53,13 @@ function ExchangeRateCard() {
         </select>
       </div>
 
-      {loading && <p className="text-slate-500 text-sm">Loading...</p>}
+      {/* {loading && <p className="text-slate-500 text-sm">Loading...</p>} */}
+      {loading && (
+        <div className="flex flex-col gap-2">
+            <Skeleton className="h-9 w-full" />
+            <Skeleton className="h-24 w-full" />
+        </div>
+      )}
       {error && <p className="text-red-600 text-sm">{error}</p>}
 
       {!loading && !error && rates && (

@@ -7,7 +7,7 @@ import Layout from './components/Layout'
 import Profile from './pages/Profile'
 import KycUpload from './pages/KycUpload'
 import AgentLocator from './pages/AgentLocator'
-import ExchangeRate from './pages/ExchangeRate'
+// import ExchangeRate from './pages/ExchangeRate'
 import TransactionHistory from './pages/TransactionHistory'
 function App() {
   return (
@@ -26,7 +26,7 @@ function App() {
         <Route path="/profile" element={<Profile />} />
         <Route path="/kyc" element={<KycUpload />} />
         <Route path="/agents" element={<AgentLocator />} />
-        <Route path="/rates" element={<ExchangeRate />} />
+        {/* <Route path="/rates" element={<ExchangeRate />} /> */}
         <Route path="/transactions" element={<TransactionHistory />} />
       </Route>
     </Routes>
