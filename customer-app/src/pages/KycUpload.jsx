@@ -1,12 +1,14 @@
 import { useState } from 'react'
 import { useAuth } from '../context/AuthContext'
 import PrimaryButton from '../components/PrimaryButton'
+import SelfieCapture from '../components/SelfieCapture'
 
 function KycUpload() {
   const { user, updateKycStatus } = useAuth()
   const [file, setFile] = useState(null)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const [selfieBlob, setSelfieBlob] = useState(null)
 
   function handleFileChange(e) {
     const selectedFile = e.target.files[0]
@@ -37,10 +39,19 @@ function KycUpload() {
   async function handleSubmit(e) {
     e.preventDefault()
 
+    // if (!file) {
+    //   setError('Please select a file first')
+    //   return
+    // }
     if (!file) {
-      setError('Please select a file first')
-      return
+        setError('Please select a document first')
+        return
     }
+
+    if (!selfieBlob) {
+        setError('Please take a selfie photo')
+  return
+}
 
     setLoading(true)
     await new Promise((resolve) => setTimeout(resolve, 1500))
@@ -49,6 +60,7 @@ function KycUpload() {
     updateKycStatus('pending')
     setLoading(false)
     setFile(null)
+    setSelfieBlob(null)
   }
 
   // Already pending or verified so don't show the upload form at all
@@ -99,7 +111,13 @@ function KycUpload() {
               file:hover:bg-sky-600 file:cursor-pointer"
           />
         </div>
-
+        <div>
+          <label className="text-slate-500 text-sm mb-1 block">
+            Selfie Photo <span className="text-red-500">*</span>
+          </label>
+          <SelfieCapture onCapture={setSelfieBlob} />
+         </div>
+        
         {file && (
           <p className="text-slate-700 text-sm">
             Selected: <span className="font-medium">{file.name}</span>
