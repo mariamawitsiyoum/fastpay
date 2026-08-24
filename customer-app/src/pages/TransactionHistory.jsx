@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { getTransactionHistory } from '../api/transactions'
 import { formatDate } from '../utils/formatDate'
+import Skeleton from '../components/Skeleton'
 
 const typeLabels = {
   cash_in: 'Cash In',
@@ -27,9 +28,24 @@ function TransactionHistory() {
     fetchTransactions()
   }, [])
 
-  if (loading) {
-    return <p className="text-slate-500">Loading transaction history...</p>
-  }
+//   if (loading) {
+//     return <p className="text-slate-500">Loading transaction history...</p>
+//   }
+if (loading) {
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-4">
+        <Skeleton className="h-8 w-52" />
+        <Skeleton className="h-9 w-36" />
+      </div>
+      <div className="flex flex-col gap-3">
+        <Skeleton className="h-24 w-full" />
+        <Skeleton className="h-24 w-full" />
+        <Skeleton className="h-24 w-full" />
+      </div>
+    </div>
+  )
+}
 
   const filteredTransactions = transactions.filter((txn) => {
     if (filterType === 'all') return true

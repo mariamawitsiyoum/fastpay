@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { getTransactionHistory } from '../api/transactions'
 import { formatDate } from '../utils/formatDate'
 import Skeleton from './Skeleton'
+import PrimaryButton from './PrimaryButton'
 
 const typeLabels = {
   cash_in: 'Cash In',
@@ -33,12 +34,18 @@ function RecentTransactions() {
     <div className="bg-white shadow-sm rounded-xl p-4">
       <div className="flex items-center justify-between mb-3">
         <p className="text-slate-500 text-sm">Recent Transactions</p>
-        <button
+        {/* <button
           onClick={() => navigate('/transactions')}
           className="text-sky-600 hover:text-sky-500 text-sm font-medium"
         >
           View all
-        </button>
+        </button> */}
+       <PrimaryButton
+          onClick={() => navigate('/transactions')}
+          className="!w-auto !text-sm"
+        >
+          View all
+        </PrimaryButton>
       </div>
 
       {/* {loading && <p className="text-slate-500 text-sm">Loading...</p>} */}

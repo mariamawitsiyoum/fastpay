@@ -1,4 +1,5 @@
 import { useNavigate } from 'react-router-dom'
+import PrimaryButton from './PrimaryButton'
 
 const statusConfig = {
   unverified: {
@@ -39,13 +40,21 @@ function KycStatusMessage({ status }) {
     <div className={`border rounded-xl p-4 flex items-center justify-between ${config.box}`}>
       <p className={`text-sm font-medium ${config.text}`}>{config.message}</p>
 
-      {config.showButton && (
+      {/* {config.showButton && (
         <button
           onClick={() => navigate(config.buttonTarget || '/kyc')} // for the button next to the message
           className="bg-sky-500 hover:bg-sky-600 text-white text-sm font-medium rounded px-3 py-2 whitespace-nowrap ml-4"
         >
           {config.buttonLabel}
         </button>
+      )} */}
+      {config.showButton && (
+        <PrimaryButton
+          onClick={() => navigate(config.buttonTarget || '/kyc')}
+          className="!w-auto ml-4"
+        >
+          {config.buttonLabel}
+        </PrimaryButton>
       )}
     </div>
   )

@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useAuth } from '../context/AuthContext'
+import PrimaryButton from '../components/PrimaryButton'
 
 function KycUpload() {
   const { user, updateKycStatus } = useAuth()
@@ -105,13 +106,16 @@ function KycUpload() {
           </p>
         )}
 
-        <button
+        {/* <button
           type="submit"
           disabled={loading}
           className="bg-sky-500 hover:bg-sky-600 text-white rounded px-3 py-2 mt-2 font-medium disabled:opacity-50"
         >
           {loading ? 'Uploading...' : 'Submit for review'}
-        </button>
+        </button> */}
+        <PrimaryButton type="submit" disabled={loading}>
+        {loading ? 'Uploading...' : 'Submit for review'}
+        </PrimaryButton>
       </form>
     </div>
   )

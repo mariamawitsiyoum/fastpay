@@ -4,6 +4,7 @@ import { getNearbyAgents } from '../api/agents'
 import { calculateDistanceKm } from '../utils/distance'
 import '../utils/leafletIconFix'
 import Skeleton from '../components/Skeleton'
+import PrimaryButton from '../components/PrimaryButton'
 
 function RecenterMap({ position }) {
   const map = useMap()
@@ -113,12 +114,15 @@ function AgentLocator() {
     <div>
       <div className="flex items-center justify-between mb-4">
         <h1 className="text-2xl font-bold text-slate-800">Nearby Agents</h1>
-        <button
+        {/* <button
           onClick={handleFindMyLocation}
           className="bg-sky-500 hover:bg-sky-600 text-white text-sm font-medium rounded px-3 py-2"
         >
           Use my location
-        </button>
+        </button> */}
+        <PrimaryButton onClick={handleFindMyLocation} className="!w-auto">
+          Use my location
+        </PrimaryButton>
       </div>
 
       <div className="flex gap-3 mb-2">
