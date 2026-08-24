@@ -13,6 +13,7 @@ type Kyc struct {
 	DocumentType string `gorm:"not null; default:passport"`
 	IdBack       string
 	IdFront      string `gorm:"not null"`
+	SelfiePhoto  string
 	Status       string `gorm:"not null;default:'pending'"`
 	ReviewedAt   *time.Time
 	ReviewedBy   uint

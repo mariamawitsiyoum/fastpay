@@ -46,6 +46,21 @@ func UploadKYC(c *gin.Context) {
 		return
 	}
 
+	// Selfie is optional for now - not every test/demo will include one yet.
+	var selfiePath string
+	selfieHeader, selfieErr := c.FormFile("selfie")
+	if selfieErr == nil {
+		selfieExt := filepath.Ext(selfieHeader.Filename)
+		selfieFilename := fmt.Sprintf("selfie_%d_%d%s", userID, time.Now().Unix(), selfieExt)
+		selfieSavePath := filepath.Join("uploads", "kyc", selfieFilename)
+
+		if err := c.SaveUploadedFile(selfieHeader, selfieSavePath); err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to save selfie"})
+			return
+		}
+		selfiePath = selfieSavePath
+	}
+
 	// --- 3. Build a safe, unique filename ---
 	ext := filepath.Ext(fileHeader.Filename) // e.g. ".jpg"
 	safeFilename := fmt.Sprintf("kyc_%d_%d%s", userID, time.Now().Unix(), ext)
@@ -62,6 +77,7 @@ func UploadKYC(c *gin.Context) {
 		UserID:       userID,
 		DocumentType: documentType,
 		IdFront:      savePath, // storing the file's location, not the file itself
+		SelfiePhoto:  selfiePath,
 		Status:       "pending",
 	}
 
