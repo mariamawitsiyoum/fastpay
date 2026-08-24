@@ -41,7 +41,7 @@ function KycStatusMessage({ status }) {
 
       {config.showButton && (
         <button
-          onClick={() => navigate(config.buttonTarget || '/kyc')}
+          onClick={() => navigate(config.buttonTarget || '/kyc')} // for the button next to the message
           className="bg-sky-500 hover:bg-sky-600 text-white text-sm font-medium rounded px-3 py-2 whitespace-nowrap ml-4"
         >
           {config.buttonLabel}

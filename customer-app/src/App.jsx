@@ -14,10 +14,6 @@ function App() {
     <Routes>
       <Route path="/" element={<Login />} />
       <Route path="/signup" element={<Signup />} />
-      <Route path="/kyc" element={<KycUpload />} />
-      <Route path="/agents" element={<AgentLocator />} />
-      <Route path="/rates" element={<ExchangeRate />} />
-      <Route path="/transactions" element={<TransactionHistory />} />
       {/* <Route path="/login" element={<Login />} /> */}
       <Route
         element={
@@ -28,6 +24,10 @@ function App() {
       >
         <Route path="/home" element={<Home />} />
         <Route path="/profile" element={<Profile />} />
+        <Route path="/kyc" element={<KycUpload />} />
+        <Route path="/agents" element={<AgentLocator />} />
+        <Route path="/rates" element={<ExchangeRate />} />
+        <Route path="/transactions" element={<TransactionHistory />} />
       </Route>
     </Routes>
   )

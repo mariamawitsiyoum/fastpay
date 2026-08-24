@@ -9,7 +9,7 @@ function KycUpload() {
 
   function handleFileChange(e) {
     const selectedFile = e.target.files[0]
-    setError('')
+    setError('')   // for previous attempts
 
     if (!selectedFile) {
       setFile(null)
@@ -50,7 +50,7 @@ function KycUpload() {
     setFile(null)
   }
 
-  // Already pending or verified — don't show the upload form at all
+  // Already pending or verified so don't show the upload form at all
   if (user?.kyc_status === 'pending') {
     return (
       <div className="max-w-md mx-auto bg-white shadow-sm rounded-xl p-6">

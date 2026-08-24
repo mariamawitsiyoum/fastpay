@@ -11,7 +11,7 @@ export function AuthProvider({ children }) {
 
     if (storedUser) {
       setUser(JSON.parse(storedUser))
-      localStorage.removeItem('fastpay_user')
+    //   localStorage.removeItem('fastpay_user')
     }
 
     setAuthLoading(false)
