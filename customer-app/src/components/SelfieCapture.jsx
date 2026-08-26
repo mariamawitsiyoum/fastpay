@@ -3,7 +3,7 @@ import { useRef, useState, useEffect } from 'react'
 function SelfieCapture({ onCapture }) {
   const videoRef = useRef(null)
   const canvasRef = useRef(null)
-  const [stream, setStream] = useState(null)
+  const streamRef = useRef(null)
   const [capturedImage, setCapturedImage] = useState(null)
   const [error, setError] = useState('')
 
@@ -13,7 +13,7 @@ function SelfieCapture({ onCapture }) {
         const mediaStream = await navigator.mediaDevices.getUserMedia({
           video: { facingMode: 'user' },
         })
-        setStream(mediaStream)
+        streamRef.current = mediaStream
         if (videoRef.current) {
           videoRef.current.srcObject = mediaStream
         }
@@ -27,8 +27,9 @@ function SelfieCapture({ onCapture }) {
     }
 
     return () => {
-      if (stream) {
-        stream.getTracks().forEach((track) => track.stop())
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach((track) => track.stop())
+        streamRef.current = null
       }
     }
   }, [capturedImage])
