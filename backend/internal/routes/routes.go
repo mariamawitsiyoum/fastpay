@@ -28,4 +28,8 @@ func RegisterRoutes(router *gin.Engine) {
 		commission.POST("/rate", handlers.SetCommissionRate)
 		commission.POST("/calculate", handlers.CalculateCommission)
 	}
+	reports := router.Group("/reports")
+	{
+		reports.GET("/company", handlers.GetCompanyReport)
+	}
 }
