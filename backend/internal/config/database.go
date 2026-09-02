@@ -30,6 +30,7 @@ func ConnectDB() {
 		&models.Transaction{},
 		&models.Recepit{},
 		&models.Commission{},
+		&models.ExchangeRate{},
 	)
 	if err != nil {
 		log.Fatal("Failed to run migrations: ", err)

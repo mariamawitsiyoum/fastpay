@@ -18,4 +18,9 @@ func RegisterRoutes(router *gin.Engine) {
 	{
 		receipts.POST("/:reference/generate", handlers.GenerateReceipt)
 	}
+	exchangeRate := router.Group("/exchange-rate")
+	{
+		exchangeRate.POST("/", handlers.SetExchangeRate)
+		exchangeRate.GET("/", handlers.GetExchangeRate)
+	}
 }
