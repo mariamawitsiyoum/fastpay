@@ -23,4 +23,9 @@ func RegisterRoutes(router *gin.Engine) {
 		exchangeRate.POST("/", handlers.SetExchangeRate)
 		exchangeRate.GET("/", handlers.GetExchangeRate)
 	}
+	commission := router.Group("/commission")
+	{
+		commission.POST("/rate", handlers.SetCommissionRate)
+		commission.POST("/calculate", handlers.CalculateCommission)
+	}
 }
