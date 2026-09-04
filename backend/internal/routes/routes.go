@@ -48,4 +48,9 @@ func RegisterRoutes(router *gin.Engine) {
 		reports.GET("/active-customers", handlers.GetActiveCustomers)
 		reports.GET("/top-corridors", handlers.GetTopCorridors)
 	}
+	integrations := router.Group("/integrations")
+	{
+		integrations.GET("/", handlers.ListIntegrations)
+		integrations.POST("/:key/test", handlers.TestIntegration)
+	}
 }

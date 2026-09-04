@@ -33,9 +33,33 @@ func ConnectDB() {
 		&models.ExchangeRate{},
 		&models.CommissionRate{},
 		&models.ExchangeRateHistory{},
+		&models.Integration{},
 	)
 	if err != nil {
 		log.Fatal("Failed to run migrations: ", err)
 	}
 	log.Println("database migrated successfully")
+
+	seedIntegrations()
+}
+
+// seedIntegrations makes sure known integration records exist, without
+// creating duplicates if the server restarts.
+func seedIntegrations() {
+	knownIntegrations := []models.Integration{
+		{Key: "email_provider", Name: "Email Provider", Status: "connected"},
+		{Key: "sms_provider", Name: "SMS Provider", Status: "disconnected"},
+		{Key: "cloud_storage", Name: "Cloud Storage", Status: "disconnected"},
+		{Key: "maps_api", Name: "Maps API", Status: "disconnected"},
+		{Key: "exchange_rate_api", Name: "Exchange Rate API", Status: "disconnected"},
+	}
+
+	for _, integration := range knownIntegrations {
+		var existing models.Integration
+		result := DB.Where("key = ?", integration.Key).First(&existing)
+		if result.Error != nil {
+			// Doesn't exist yet - create it.
+			DB.Create(&integration)
+		}
+	}
 }
