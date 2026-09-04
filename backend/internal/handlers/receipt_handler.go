@@ -1,7 +1,10 @@
 package handlers
 
 import (
+	"fmt"
 	"net/http"
+	"strconv"
+	"time"
 
 	"backend/internal/config"
 	"backend/internal/models"
@@ -12,66 +15,159 @@ import (
 
 // GenerateReceipt creates a PDF receipt (with embedded QR code) for a
 // given transaction, and saves a Receipt record pointing to it.
-func GenerateReceipt(c *gin.Context) {
-	reference := c.Param("reference")
+type GenerateReceiptRequest struct {
+	TransactionID uint `json:"transaction_id" binding:"required"`
+}
 
-	// Look up the transaction this receipt is for.
+// GenerateReceipt creates a PDF receipt (with embedded QR code) for a
+// given transaction, and saves a Receipt record pointing to it.
+func GenerateReceipt(c *gin.Context) {
+	var req GenerateReceiptRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
 	var txn models.Transaction
-	if result := config.DB.Where("reference = ?", reference).First(&txn); result.Error != nil {
+	if result := config.DB.First(&txn, req.TransactionID); result.Error != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "transaction not found"})
 		return
 	}
 
-	// Generate the QR code first - the PDF needs it to already exist as
-	// a file before it can embed it.
-	qrContent := txn.Reference // what scanning the code reveals - the reference is enough for now
-	qrPath, err := services.GenerateQRCode(qrContent, txn.Reference)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to generate QR code"})
-		return
-	}
-
-	// Generate the PDF, embedding the QR code we just made.
-	pdfPath, err := services.GenerateReceiptPDF(txn, qrPath)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to generate PDF receipt"})
-		return
-	}
-
-	// Save a Receipt record in the database, pointing to both files.
+	// Create the receipt record first (without file paths yet) so we have
+	// a real ID to build the verification URL from.
 	receipt := models.Recepit{
 		TransactionID: txn.ID,
-		SharedVia:     "none", // not shared yet - that comes later
-		PDFUrl:        pdfPath,
-		UserId:        1, // TEMPORARY: should come from the transaction's actual customer once auth exists
-		QRCodeUrl:     qrPath,
+		SharedVia:     "none",
+		UserId:        1, // TEMPORARY until auth links the real customer
 	}
 	if result := config.DB.Create(&receipt); result.Error != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to save receipt record"})
 		return
 	}
 
-	// TEMPORARY: using a hardcoded test email until real customer
-	// email lookup exists (depends on auth/user signup being finished).
-	testEmail := "merrymary121212@gmail.com"
-	if err := services.SendReceiptEmail(testEmail, txn.Reference, pdfPath); err != nil {
-		// We don't fail the whole request if email fails - the receipt
-		// itself was already generated and saved successfully. We just
-		// let the response note that emailing didn't work.
-		c.JSON(http.StatusCreated, gin.H{
-			"message":     "receipt generated, but email failed to send",
-			"receipt_id":  receipt.ID,
-			"pdf_url":     receipt.PDFUrl,
-			"qr_url":      receipt.QRCodeUrl,
-			"email_error": err.Error(),
-		})
+	// The QR code now encodes a real, working verify link.
+	verifyURL := fmt.Sprintf("http://localhost:8080/receipts/verify/%d", receipt.ID)
+	qrPath, err := services.GenerateQRCode(verifyURL, txn.Reference)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to generate QR code"})
+		return
+	}
+
+	pdfPath, err := services.GenerateReceiptPDF(txn, qrPath)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to generate PDF receipt"})
+		return
+	}
+
+	receipt.PDFUrl = pdfPath
+	receipt.QRCodeUrl = qrPath
+	if result := config.DB.Save(&receipt); result.Error != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to update receipt record"})
 		return
 	}
 
 	c.JSON(http.StatusCreated, gin.H{
-		"message":    "receipt generated and emailed",
-		"receipt_id": receipt.ID,
-		"pdf_url":    receipt.PDFUrl,
-		"qr_url":     receipt.QRCodeUrl,
+		"id":             receipt.ID,
+		"transaction_id": txn.ID,
+		"pdf_url":        receipt.PDFUrl,
+		"qr_code_data":   verifyURL,
+	})
+}
+
+// GetReceipt fetches a single receipt by its ID.
+func GetReceipt(c *gin.Context) {
+	idParam := c.Param("id")
+	id, err := strconv.ParseUint(idParam, 10, 64)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid receipt id"})
+		return
+	}
+
+	var receipt models.Recepit
+	if result := config.DB.First(&receipt, id); result.Error != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "receipt not found"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"id":           receipt.ID,
+		"pdf_url":      receipt.PDFUrl,
+		"qr_code_data": receipt.QRCodeUrl,
+	})
+}
+
+type ShareReceiptRequest struct {
+	Method      string `json:"method" binding:"required"`
+	Destination string `json:"destination" binding:"required"`
+}
+
+// ShareReceipt sends an already-generated receipt to a destination (email for now).
+func ShareReceipt(c *gin.Context) {
+	idParam := c.Param("id")
+	id, err := strconv.ParseUint(idParam, 10, 64)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid receipt id"})
+		return
+	}
+
+	var req ShareReceiptRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	var receipt models.Recepit
+	if result := config.DB.First(&receipt, id); result.Error != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "receipt not found"})
+		return
+	}
+
+	var txn models.Transaction
+	config.DB.First(&txn, receipt.TransactionID)
+
+	if req.Method == "email" {
+		if err := services.SendReceiptEmail(req.Destination, txn.Reference, receipt.PDFUrl); err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to send email"})
+			return
+		}
+	}
+
+	now := time.Now()
+	receipt.SharedVia = req.Method
+	receipt.SharedTime = &now
+	config.DB.Save(&receipt)
+
+	c.JSON(http.StatusOK, gin.H{"message": "Receipt sent"})
+}
+
+// VerifyReceipt is a PUBLIC endpoint - what scanning the QR code opens.
+func VerifyReceipt(c *gin.Context) {
+	idParam := c.Param("id")
+	id, err := strconv.ParseUint(idParam, 10, 64)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"valid": false, "error": "invalid receipt id"})
+		return
+	}
+
+	var receipt models.Recepit
+	if result := config.DB.First(&receipt, id); result.Error != nil {
+		c.JSON(http.StatusNotFound, gin.H{"valid": false, "error": "receipt not found"})
+		return
+	}
+
+	var txn models.Transaction
+	if result := config.DB.First(&txn, receipt.TransactionID); result.Error != nil {
+		c.JSON(http.StatusNotFound, gin.H{"valid": false, "error": "transaction not found"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"valid":          true,
+		"transaction_id": txn.ID,
+		"amount":         txn.Amount,
+		"date":           txn.CreatedAt,
+		"sender":         txn.SenderPhone,
+		"receiver":       txn.RecipientPhone,
 	})
 }

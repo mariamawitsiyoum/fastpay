@@ -10,18 +10,31 @@ func RegisterRoutes(router *gin.Engine) {
 	kyc := router.Group("/kyc")
 	{
 		kyc.POST("/upload", handlers.UploadKYC)
+		kyc.GET("/me", handlers.GetMyKYCStatus)
 		kyc.GET("/pending", handlers.GetPendingKYC)
-		kyc.PATCH("/:id/review", handlers.ReviewKYC)
+		kyc.PATCH("/:id/approve", handlers.ApproveKYC)
+		kyc.PATCH("/:id/reject", handlers.RejectKYC)
 	}
-
 	receipts := router.Group("/receipts")
 	{
-		receipts.POST("/:reference/generate", handlers.GenerateReceipt)
+		receipts.POST("/generate", handlers.GenerateReceipt)
+		receipts.GET("/:id", handlers.GetReceipt)
+		receipts.POST("/:id/share", handlers.ShareReceipt)
+		receipts.GET("/verify/:id", handlers.VerifyReceipt)
 	}
-	exchangeRate := router.Group("/exchange-rate")
+	// Public, simple lookup - matches the spec's /exchange-rate (singular)
+	router.GET("/exchange-rate", handlers.GetPublicRate)
+	router.GET("/exchange-rate/all", handlers.GetAllPublicRates)
+
+	// Admin CRUD - matches the spec's /exchange-rates (plural)
+	exchangeRates := router.Group("/exchange-rates")
 	{
-		exchangeRate.POST("/", handlers.SetExchangeRate)
-		exchangeRate.GET("/", handlers.GetExchangeRate)
+		exchangeRates.GET("/", handlers.ListExchangeRates)
+		exchangeRates.POST("/", handlers.AddExchangeRate)
+		exchangeRates.PUT("/:currency", handlers.EditExchangeRate)
+		exchangeRates.PATCH("/:currency/activate", handlers.ActivateExchangeRate)
+		exchangeRates.PATCH("/:currency/deactivate", handlers.DeactivateExchangeRate)
+		exchangeRates.GET("/:currency/history", handlers.GetRateHistory)
 	}
 	commission := router.Group("/commission")
 	{
@@ -30,6 +43,9 @@ func RegisterRoutes(router *gin.Engine) {
 	}
 	reports := router.Group("/reports")
 	{
-		reports.GET("/company", handlers.GetCompanyReport)
+		reports.GET("/daily-volume", handlers.GetDailyVolume)
+		reports.GET("/revenue", handlers.GetRevenue)
+		reports.GET("/active-customers", handlers.GetActiveCustomers)
+		reports.GET("/top-corridors", handlers.GetTopCorridors)
 	}
 }

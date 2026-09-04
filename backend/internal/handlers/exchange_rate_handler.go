@@ -8,50 +8,132 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// SetRateRequest describes the JSON an admin sends to set/update a rate.
-type SetRateRequest struct {
-	FromCurrency string  `json:"from_currency" binding:"required,len=3"`
-	ToCurrency   string  `json:"to_currency" binding:"required,len=3"`
-	Rate         float64 `json:"rate" binding:"required,gt=0"`
-	UpdatedBy    uint    `json:"updated_by" binding:"required"`
+type AddRateRequest struct {
+	Currency string  `json:"currency" binding:"required,len=3"`
+	BuyRate  float64 `json:"buy_rate" binding:"required,gt=0"`
+	SellRate float64 `json:"sell_rate" binding:"required,gt=0"`
 }
 
-// SetExchangeRate lets an admin create or update a currency pair's rate.
-func SetExchangeRate(c *gin.Context) {
-	var req SetRateRequest
+// ListExchangeRates - admin view of all currencies.
+func ListExchangeRates(c *gin.Context) {
+	rates, err := services.ListExchangeRates()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to fetch rates"})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"rates": rates})
+}
+
+// AddExchangeRate - admin adds a new currency.
+func AddExchangeRate(c *gin.Context) {
+	var req AddRateRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	rate, err := services.SetExchangeRate(req.FromCurrency, req.ToCurrency, req.Rate, req.UpdatedBy)
+	// TEMPORARY: hardcoded until auth provides the real admin's ID.
+	rate, err := services.AddExchangeRate(req.Currency, req.BuyRate, req.SellRate, 1)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to set exchange rate"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-
-	c.JSON(http.StatusOK, gin.H{
-		"message": "exchange rate updated",
-		"data":    rate,
-	})
+	c.JSON(http.StatusCreated, rate)
 }
 
-// GetExchangeRate looks up the rate for a currency pair, given as URL query
-// parameters, e.g. /exchange-rate?from=ETB&to=USD
-func GetExchangeRate(c *gin.Context) {
-	from := c.Query("from")
-	to := c.Query("to")
+type EditRateRequest struct {
+	BuyRate  float64 `json:"buy_rate" binding:"required,gt=0"`
+	SellRate float64 `json:"sell_rate" binding:"required,gt=0"`
+}
 
-	if from == "" || to == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "both 'from' and 'to' query parameters are required"})
+// EditExchangeRate - admin updates an existing currency's rate.
+func EditExchangeRate(c *gin.Context) {
+	currency := c.Param("currency")
+
+	var req EditRateRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	rate, err := services.GetExchangeRate(from, to)
+	rate, err := services.EditExchangeRate(currency, req.BuyRate, req.SellRate, 1)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, rate)
+}
+
+// ActivateExchangeRate - admin activates a currency.
+func ActivateExchangeRate(c *gin.Context) {
+	currency := c.Param("currency")
+	rate, err := services.SetRateActive(currency, true)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"currency": rate.Currency, "is_active": rate.IsActive})
+}
+
+// DeactivateExchangeRate - admin deactivates a currency.
+func DeactivateExchangeRate(c *gin.Context) {
+	currency := c.Param("currency")
+	rate, err := services.SetRateActive(currency, false)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"currency": rate.Currency, "is_active": rate.IsActive})
+}
+
+// GetRateHistory - admin views past rates for a currency.
+func GetRateHistory(c *gin.Context) {
+	currency := c.Param("currency")
+	history, err := services.GetRateHistory(currency)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to fetch history"})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"currency": currency, "history": history})
+}
+
+// GetPublicRate - public, single currency lookup.
+func GetPublicRate(c *gin.Context) {
+	target := c.Query("target")
+	if target == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "target currency is required"})
+		return
+	}
+
+	rate, err := services.GetPublicRate(target)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"data": rate})
+	blended := (rate.BuyRate + rate.SellRate) / 2
+	c.JSON(http.StatusOK, gin.H{
+		"base":   "USD",
+		"target": rate.Currency,
+		"rate":   blended,
+	})
+}
+
+// GetAllPublicRates - public, all currencies at once.
+func GetAllPublicRates(c *gin.Context) {
+	rates, err := services.GetAllPublicRates()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to fetch rates"})
+		return
+	}
+
+	ratesMap := make(map[string]float64)
+	for _, r := range rates {
+		ratesMap[r.Currency] = (r.BuyRate + r.SellRate) / 2
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"base":  "USD",
+		"rates": ratesMap,
+	})
 }
