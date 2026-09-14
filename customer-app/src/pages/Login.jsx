@@ -242,6 +242,12 @@ function Login() {
         {errors.password && (
           <p className="text-red-600 text-sm -mt-3 mb-4">{errors.password}</p>
         )}
+        
+        <div className="text-right -mt-2 mb-4">
+          <Link to="/forgot-password" className="text-sky-600 hover:text-sky-500 text-sm font-medium">
+            Forgot your password?
+          </Link>
+        </div>
 
         <PrimaryButton type="submit" disabled={loading}>
           {loading ? 'Logging in...' : 'Login'}

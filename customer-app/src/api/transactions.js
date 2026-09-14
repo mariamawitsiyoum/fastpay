@@ -11,7 +11,7 @@ const mockTransactions = [
   },
   {
     id: 'txn_1002',
-    type: 'cash_out',
+    type: 'cash_in',
     amount: 200,
     currency: 'USD',
     date: '2026-08-05T09:15:00Z',

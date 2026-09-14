@@ -41,3 +41,18 @@ export function login(credentials) {
     }, 1000)
   })
 }
+
+export function requestPasswordReset(email) {
+  return new Promise((resolve, reject) => {
+    setTimeout(() => {
+      console.log('Mock password reset requested for:', email)
+
+      if (!email.includes('@')) {
+        reject(new Error('Please enter a valid email'))
+        return
+      }
+
+      resolve({ message: 'If an account exists with this email, a reset link has been sent.' })
+    }, 1000)
+  })
+}
